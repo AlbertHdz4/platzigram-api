@@ -30,8 +30,9 @@ test('success POST /', async (t) => {
   }
   // Lo que nos va a retornar es un token
   let token = await request(options)
+  console.log(token)
   // Decodificamos el y verificamos el token
   let decoded = await utils.verifyToken(token, config.secret)
-  t.deepEqual(decoded.username, user.username)
+  // t.deepEqual(decoded.username, user.username)
   t.is(decoded.username, user.username)
 })

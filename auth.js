@@ -1,8 +1,10 @@
 'use strict'
-import { send } from 'micro'
+import { send, json } from 'micro'
 import HttpHash from 'http-hash'
 import Db from 'platzigram-db'
+import utils from './lib/utils'
 import DbStub from './test/stub/db'
+import config from './config'
 
 const env = process.env.NODE_ENV || 'production'
 let db = new Db()
@@ -13,6 +15,20 @@ if (env === 'test') {
 }
 
 const hash = HttpHash()
+
+hash.set('POST /', async function authenticate (req, res, params) {
+  let credentials = await json(req)
+  console.log(credentials)
+  await db.connect()
+  let auth = await db.authenticate(credentials.username, credentials.password)
+  if (!auth) {
+    return send(res, 401, { error: 'invalid token' })
+  }
+  let token = await utils.signToken({
+    username: credentials.username
+  }, config.secret)
+  send(res, 200, token)
+})
 
 export default async function main (req, res) {
   // ¿Que vamos a necesitar de request (req) para poder hacer match con la URL
